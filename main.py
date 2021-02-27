@@ -73,7 +73,7 @@ while True:
     tick = cv2.getTickCount()
 
     # detect faces with front_cascade
-    faces = front_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=3, minSize=(90, 90))
+    faces = front_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=3, minSize=(100, 90))
 
     # draw detected faces
     if len(faces) == 1:
@@ -81,7 +81,7 @@ while True:
         cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
     # detect eyes with eye_cascade
-    eyes = eye_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=3, minSize=(70, 70))
+    eyes = eye_cascade.detectMultiScale(gray, scaleFactor=1.08, minNeighbors=4, minSize=(60, 50))
 
     # dray detected eyes
     index = 0
