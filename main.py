@@ -1,6 +1,6 @@
 """
 Hey-Wake-Up
-COPYRIGHT © 2021 KIM DONGHEE, KIM HYUNSANG. ALL RIGHTS RESERVED.
+COPYRIGHT © 2021 KIM DONGHEE. ALL RIGHTS RESERVED.
 """
 
 # import modules
@@ -25,7 +25,7 @@ cascade_dir = "./data/model/cascade/"
 # parse the arguments
 '''
 ap = argparse.ArgumentParser()
-ap.add_argument("-c", "--cascade", required=True, help="set CascadeClassifier file in '"'./data/model/cascade'")
+ap.add_argument("-c", "--front", required=True, help="set FrontalFace CascadeClassifier file in '"'./data/model/cascade'")
 ap.add_argument("-w", "--webcam", type=int, default=0, help="set camera ID")
 args = vars(ap.parse_args())
 '''
@@ -34,12 +34,13 @@ args = vars(ap.parse_args())
 print("[INFO] Initialize models...")
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(landmark_dir + "shape_predictor_68_face_landmarks.dat")
-cascade = cv2.CascadeClassifier(cascade_dir + "haarcascade_frontalface_alt2.xml")  # cascade = cv2.CascadeClassifier(cascade_dir + args["cascade"])
+eye_cascade = cv2.CascadeClassifier(cascade_dir + "haarcascade_eye.xml")
+front_cascade = cv2.CascadeClassifier(cascade_dir + "haarcascade_frontalface_alt2.xml")  # front_cascade = cv2.CascadeClassifier(cascade_dir + args["front"])
 print("Check")
 
 # initialize camera id
 print("[INFO] Set camera device...")
-vid = VideoStream(0).start()  # vs = VideoStream(usePiCamera=args["webcam"] > 0).start()
+vid = VideoStream(0).start()  # vid = VideoStream(usePiCamera=args["webcam"] > 0).start()
 time.sleep(1.0)
 print("Check")
 
@@ -71,13 +72,26 @@ while True:
     # count tick for fps
     tick = cv2.getTickCount()
 
-    # detect face with cascade
-    faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=3, minSize=(100, 100))
+    # detect faces with front_cascade
+    faces = front_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=3, minSize=(90, 90))
 
-    # draw detected face
+    # draw detected faces
     if len(faces) == 1:
         x, y, w, h = faces[0, :]
         cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+    # detect eyes with eye_cascade
+    eyes = eye_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=3, minSize=(70, 70))
+
+    # dray detected eyes
+    index = 0
+    for eye_x, eye_y, eye_w, eye_h in eyes:
+        if index == 0:
+            eye_1 = eye_x, eye_y, eye_w, eye_h
+        elif index == 1:
+            eye_2 = eye_x, eye_y, eye_w, eye_h
+        cv2.rectangle(frame, (eye_x, eye_y), (eye_x + eye_w, eye_y + eye_h), (0, 255, 255), 2)
+        index = index + 1
 
     '''
     gaze.refresh(frame)
