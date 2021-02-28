@@ -5,6 +5,7 @@ COPYRIGHT © 2021 KIM DONGHEE. ALL RIGHTS RESERVED.
 
 # import modules
 import time
+import math
 import cv2
 import dlib
 import argparse
@@ -72,26 +73,7 @@ while True:
     # count tick for fps
     tick = cv2.getTickCount()
 
-    # detect faces with front_cascade
-    faces = front_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=3, minSize=(100, 90))
-
-    # draw detected faces
-    if len(faces) == 1:
-        x, y, w, h = faces[0, :]
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-
-    # detect eyes with eye_cascade
-    eyes = eye_cascade.detectMultiScale(gray, scaleFactor=1.08, minNeighbors=4, minSize=(60, 50))
-
-    # dray detected eyes
-    index = 0
-    for eye_x, eye_y, eye_w, eye_h in eyes:
-        if index == 0:
-            eye_1 = eye_x, eye_y, eye_w, eye_h
-        elif index == 1:
-            eye_2 = eye_x, eye_y, eye_w, eye_h
-        cv2.rectangle(frame, (eye_x, eye_y), (eye_x + eye_w, eye_y + eye_h), (0, 255, 255), 2)
-        index = index + 1
+    '''[TEMP CODE] 1'''
 
     '''[TEMP CODE] 0'''
 
@@ -114,6 +96,12 @@ while True:
         R_center_top = midpoint(mark.part(43), mark.part(44))
         R_center_bottom = midpoint(mark.part(47), mark.part(46))
 
+        # set point center
+        L_LR_Cx = abs((mark.part(36).x + mark.part(39).x) // 2)
+        L_TB_Cy = abs((mark.part(38).y + mark.part(40).y) // 2)
+        R_LR_Cx = abs((mark.part(42).x + mark.part(45).x) // 2)
+        R_TB_Cy = abs((mark.part(44).y + mark.part(46).y) // 2)
+
         # set numpy mark
         mark = face_utils.shape_to_np(mark)
 
@@ -129,6 +117,10 @@ while True:
         cv2.line(frame, R_left_point, R_right_point, (0, 255, 0), 1)
         cv2.line(frame, R_center_top, R_center_bottom, (0, 255, 0), 1)
 
+        # draw eyes
+        cv2.circle(frame, (L_LR_Cx, L_TB_Cy), 23, (255, 0, 0), 2)
+        cv2.circle(frame, (R_LR_Cx, R_TB_Cy), 23, (255, 0, 0), 2)
+
         # calc left lid ear
         left_lid_ear = calc_lid(mark[42:48])
         cv2.putText(frame, "LEFT LID EAR:{} ".format(round(left_lid_ear, 3)), (10, 100), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 1, cv2.LINE_AA)
@@ -140,6 +132,56 @@ while True:
         # notice wake up
         if (left_lid_ear + right_lid_ear) < 0.40:
             cv2.putText(frame, "Hey, Wake Up!", (10, 180), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 255), 3, 1)
+
+    # detect eyes with eye_cascade
+    eyes = eye_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=6)
+
+    # draw detected eyes
+    index = 0
+    for eye_x, eye_y, eye_w, eye_h in eyes:
+        if index == 0:
+            eye_1 = eye_x, eye_y, eye_w, eye_h
+        elif index == 1:
+            eye_2 = eye_x, eye_y, eye_w, eye_h
+
+        # loop per face detections
+        for rect in rects:
+            mark = predictor(gray, rect)
+
+            # set point center
+            L_LR_Cx = abs((mark.part(36).x + mark.part(39).x)//2)
+            L_LR_Cy = abs((mark.part(36).y + mark.part(39).y)//2)
+
+            L_TB_Cx = abs((mark.part(38).x + mark.part(40).x) // 2)
+            L_TB_Cy = abs((mark.part(38).y + mark.part(40).y)//2)
+
+            R_LR_Cx = abs((mark.part(42).x + mark.part(45).x)//2)
+            R_LR_Cy = abs((mark.part(42).y + mark.part(45).y) // 2)
+
+            R_TB_Cx = abs((mark.part(44).x + mark.part(46).x)//2)
+            R_TB_Cy = abs((mark.part(44).y + mark.part(46).y) // 2)
+
+            # set eye triangle
+            side_a = math.sqrt((R_LR_Cx - L_LR_Cx)**2 + (R_LR_Cy - L_LR_Cy))
+            side_b = R_LR_Cx - L_LR_Cx
+            side_c = R_LR_Cy - L_LR_Cy
+            cos_ab = (side_a**2 + side_b**2 - side_c**2)/(2*side_a*side_b)
+            radian_ab = np.arccos(cos_ab)
+            angle_ab = (radian_ab*180)/math.pi
+
+            # re-set frame with angle
+            if (R_LR_Cy - L_LR_Cy) > 0:
+                frame = imutils.rotate(frame, angle_ab)
+            else:
+                frame = imutils.rotate(frame, -angle_ab)
+
+            # draw eye triangle
+            cv2.line(frame, (L_LR_Cx, L_LR_Cy), (R_LR_Cx, R_LR_Cy), (255, 255, 0), 1)
+            cv2.line(frame, (R_LR_Cx, L_LR_Cy), (R_LR_Cx, R_LR_Cy), (0, 255, 255), 1)
+            cv2.line(frame, (L_LR_Cx, L_LR_Cy), (R_LR_Cx, L_LR_Cy), (255, 0, 255), 1)
+
+        cv2.rectangle(frame, (eye_x, eye_y), (eye_x + eye_w, eye_y + eye_h), (0, 255, 255), 2)
+        index = index + 1
 
     fps = cv2.getTickFrequency() / (cv2.getTickCount() - tick)
     cv2.putText(frame, "FPS:{} ".format(int(fps)), (10, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 255), 2, cv2.LINE_AA)
