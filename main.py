@@ -110,12 +110,12 @@ while True:
             cv2.circle(frame, (x, y), 2, (0, 0, 255), -1)
 
         # draw left lid line
-        cv2.line(frame, L_left_point, L_right_point, (0, 255, 0), 1)
-        cv2.line(frame, L_center_top, L_center_bottom, (0, 255, 0), 1)
+        cv2.line(frame, L_left_point, L_right_point, (0, 255, 0), 2)
+        cv2.line(frame, L_center_top, L_center_bottom, (0, 255, 0), 2)
 
         # draw right lid line
-        cv2.line(frame, R_left_point, R_right_point, (0, 255, 0), 1)
-        cv2.line(frame, R_center_top, R_center_bottom, (0, 255, 0), 1)
+        cv2.line(frame, R_left_point, R_right_point, (0, 255, 0), 2)
+        cv2.line(frame, R_center_top, R_center_bottom, (0, 255, 0), 2)
 
         # draw eyes
         cv2.circle(frame, (L_LR_Cx, L_TB_Cy), 23, (255, 0, 0), 2)
@@ -169,11 +169,16 @@ while True:
             radian_ab = np.arccos(cos_ab)
             angle_ab = (radian_ab*180)/math.pi
 
+            # draw nose center
+            cv2.circle(frame, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2), 5, (255, 255, 255), 5)
+
             # re-set frame with angle
             if (R_LR_Cy - L_LR_Cy) > 0:
-                frame = imutils.rotate(frame, angle_ab)
-            else:
-                frame = imutils.rotate(frame, -angle_ab)
+                rotate_frame = imutils.rotate(frame, angle_ab, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2))
+                gray = cv2.cvtColor(rotate_frame, cv2.COLOR_BGR2GRAY)
+            elif (R_LR_Cy - L_LR_Cy) < 0:
+                rotate_frame = imutils.rotate(frame, -angle_ab, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2))
+                gray = cv2.cvtColor(rotate_frame, cv2.COLOR_BGR2GRAY)
 
             # draw eye triangle
             cv2.line(frame, (L_LR_Cx, L_LR_Cy), (R_LR_Cx, R_LR_Cy), (255, 255, 0), 1)
