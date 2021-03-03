@@ -64,6 +64,9 @@ def midpoint(p1, p2):
 # set GazeTracking
 gaze = GazeTracking()
 
+angle_ab_list = []
+
+
 # loop per frame
 while True:
     frame = vid.read()
@@ -97,10 +100,20 @@ while True:
         R_center_bottom = midpoint(mark.part(47), mark.part(46))
 
         # set point center
+        # set point center
         L_LR_Cx = abs((mark.part(36).x + mark.part(39).x) // 2)
+        L_LR_Cy = abs((mark.part(36).y + mark.part(39).y) // 2)
+
+        L_TB_Cx = abs((mark.part(38).x + mark.part(40).x) // 2)
         L_TB_Cy = abs((mark.part(38).y + mark.part(40).y) // 2)
+
         R_LR_Cx = abs((mark.part(42).x + mark.part(45).x) // 2)
+        R_LR_Cy = abs((mark.part(42).y + mark.part(45).y) // 2)
+
+        R_TB_Cx = abs((mark.part(44).x + mark.part(46).x) // 2)
         R_TB_Cy = abs((mark.part(44).y + mark.part(46).y) // 2)
+
+
 
         # set numpy mark
         mark = face_utils.shape_to_np(mark)
@@ -140,52 +153,44 @@ while True:
     index = 0
     for eye_x, eye_y, eye_w, eye_h in eyes:
 
-        # loop per face detections
-        for rect in rects:
-            mark = predictor(gray, rect)
+        # set eye triangle
+        side_a = math.sqrt((R_LR_Cx - L_LR_Cx)**2 + (R_LR_Cy - L_LR_Cy))
+        side_b = R_LR_Cx - L_LR_Cx
+        side_c = R_LR_Cy - L_LR_Cy
+        cos_ab = (side_a**2 + side_b**2 - side_c**2)/(2*side_a*side_b)
+        radian_ab = np.arccos(cos_ab)
+        angle_ab = (radian_ab*180)/math.pi
 
-            # set point center
-            L_LR_Cx = abs((mark.part(36).x + mark.part(39).x)//2)
-            L_LR_Cy = abs((mark.part(36).y + mark.part(39).y)//2)
+        if len(angle_ab_list) == 0:
+            angle_ab_list.append(angle_ab)
+        elif len(angle_ab_list) > 0:
+            angle_ab_list.pop(0)
+            angle_ab_list.append(angle_ab)
 
-            L_TB_Cx = abs((mark.part(38).x + mark.part(40).x) // 2)
-            L_TB_Cy = abs((mark.part(38).y + mark.part(40).y)//2)
+        # draw nose center
+        cv2.circle(frame, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2), 5, (255, 255, 255), 5)
 
-            R_LR_Cx = abs((mark.part(42).x + mark.part(45).x)//2)
-            R_LR_Cy = abs((mark.part(42).y + mark.part(45).y) // 2)
+        # re-set frame with angle
+        if (R_LR_Cy - L_LR_Cy) > 0:
+            rotate_frame = imutils.rotate(frame, angle_ab, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2))
+            gray = cv2.cvtColor(rotate_frame, cv2.COLOR_BGR2GRAY)
+        elif (R_LR_Cy - L_LR_Cy) < 0:
+            rotate_frame = imutils.rotate(frame, -angle_ab, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2))
+            gray = cv2.cvtColor(rotate_frame, cv2.COLOR_BGR2GRAY)
 
-            R_TB_Cx = abs((mark.part(44).x + mark.part(46).x)//2)
-            R_TB_Cy = abs((mark.part(44).y + mark.part(46).y) // 2)
-
-            # set eye triangle
-            side_a = math.sqrt((R_LR_Cx - L_LR_Cx)**2 + (R_LR_Cy - L_LR_Cy))
-            side_b = R_LR_Cx - L_LR_Cx
-            side_c = R_LR_Cy - L_LR_Cy
-            cos_ab = (side_a**2 + side_b**2 - side_c**2)/(2*side_a*side_b)
-            radian_ab = np.arccos(cos_ab)
-            angle_ab = (radian_ab*180)/math.pi
-
-            # draw nose center
-            cv2.circle(frame, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2), 5, (255, 255, 255), 5)
-
-            # re-set frame with angle
-            if (R_LR_Cy - L_LR_Cy) > 0:
-                rotate_frame = imutils.rotate(frame, angle_ab, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2))
-                gray = cv2.cvtColor(rotate_frame, cv2.COLOR_BGR2GRAY)
-            elif (R_LR_Cy - L_LR_Cy) < 0:
-                rotate_frame = imutils.rotate(frame, -angle_ab, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2))
-                gray = cv2.cvtColor(rotate_frame, cv2.COLOR_BGR2GRAY)
-
-            # draw eye triangle
-            cv2.line(frame, (L_LR_Cx, L_LR_Cy), (R_LR_Cx, R_LR_Cy), (255, 255, 0), 1)
-            cv2.line(frame, (R_LR_Cx, L_LR_Cy), (R_LR_Cx, R_LR_Cy), (0, 255, 255), 1)
-            cv2.line(frame, (L_LR_Cx, L_LR_Cy), (R_LR_Cx, L_LR_Cy), (255, 0, 255), 1)
+        # draw eye triangle
+        cv2.line(frame, (L_LR_Cx, L_LR_Cy), (R_LR_Cx, R_LR_Cy), (255, 255, 0), 1)
+        cv2.line(frame, (R_LR_Cx, L_LR_Cy), (R_LR_Cx, R_LR_Cy), (0, 255, 255), 1)
+        cv2.line(frame, (L_LR_Cx, L_LR_Cy), (R_LR_Cx, L_LR_Cy), (255, 0, 255), 1)
 
         cv2.rectangle(frame, (eye_x, eye_y), (eye_x + eye_w, eye_y + eye_h), (0, 255, 255), 2)
         index = index + 1
 
     fps = cv2.getTickFrequency() / (cv2.getTickCount() - tick)
     cv2.putText(frame, "FPS:{} ".format(int(fps)), (10, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 255), 2, cv2.LINE_AA)
+
+    print(angle_ab_list)
+    print("one last")
 
     # show frames
     cv2.imshow("Hey, Wake Up!", frame)
