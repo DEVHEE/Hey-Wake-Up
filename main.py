@@ -139,10 +139,6 @@ while True:
     # draw detected eyes
     index = 0
     for eye_x, eye_y, eye_w, eye_h in eyes:
-        if index == 0:
-            eye_1 = eye_x, eye_y, eye_w, eye_h
-        elif index == 1:
-            eye_2 = eye_x, eye_y, eye_w, eye_h
 
         # loop per face detections
         for rect in rects:
