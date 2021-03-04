@@ -35,7 +35,19 @@
 ## Folder Structure
 
     .
+    ├── LICENSE
+    ├── README.md
+    ├── app.py
     ├── data
+    │   ├── etc
+    │   │   └── NanumGothic-Bold.ttf
+    │   ├── library
+    │   │   └── gaze_tracking
+    │   │       ├── __init__.py
+    │   │       ├── calibration.py
+    │   │       ├── eye.py
+    │   │       ├── gaze_tracking.py
+    │   │       └── pupil.py
     │   └── model
     │       ├── cascade
     │       │   ├── haarcascade_eye.xml
@@ -46,17 +58,12 @@
     │       │   └── lbpcascade_frontalface.xml
     │       └── landmark
     │           └── shape_predictor_68_face_landmarks.dat
-    ├── gaze_tracking
-    │   ├── __init__.py
-    │   ├── calibration.py
-    │   ├── eye.py
-    │   ├── gaze_tracking.py
-    │   └── pupil.py
-    ├── .gitattributes
-    ├── .gitignore
-    ├── LICENSE
-    ├── NanumGothic-Bold.ttf
-    └── main.py
+    ├── main.py
+    ├── temp
+    │   ├── fps_optimize.py
+    │   └── temp.py
+    └── templates
+        └── index.html
 
 ## Licensing
 
