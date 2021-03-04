@@ -64,14 +64,37 @@ def midpoint(p1, p2):
 # set GazeTracking
 gaze = GazeTracking()
 
+# set value container
 angle_ab_list = []
+L_LR_Cx_list = []
+L_LR_Cy_list = []
+R_LR_Cx_list = []
+R_LR_Cy_list = []
 
+frame_count = 0
 
 # loop per frame
 while True:
+    print("==============================")
+    print("angle: ", angle_ab_list)
+    print("Lx: ", L_LR_Cx_list)
+    print("Ly: ", L_LR_Cy_list)
+    print("Rx: ", R_LR_Cx_list)
+    print("Ry: ", R_LR_Cy_list)
+    print("- - - - - - - - - - - - - - - -")
+
     frame = vid.read()
     frame = imutils.resize(frame, width=1000)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # re-set frame with angle
+    if frame_count != 0 and (R_LR_Cy_list[0] - L_LR_Cy_list[0]) > 0:
+        rotate_frame = imutils.rotate(frame, angle_ab_list[0], ((L_LR_Cx_list[0] + R_LR_Cx_list[0]) // 2, (L_LR_Cy_list[0] + R_LR_Cy_list[0]) // 2))
+        gray = cv2.cvtColor(rotate_frame, cv2.COLOR_BGR2GRAY)
+    elif frame_count != 0 and (R_LR_Cy_list[0] - L_LR_Cy_list[0]) < 0:
+        rotate_frame = imutils.rotate(frame, -angle_ab_list[0], ((L_LR_Cx_list[0] + R_LR_Cx_list[0]) // 2, (L_LR_Cy_list[0] + R_LR_Cy_list[0]) // 2))
+        gray = cv2.cvtColor(rotate_frame, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # count tick for fps
     tick = cv2.getTickCount()
@@ -113,7 +136,11 @@ while True:
         R_TB_Cx = abs((mark.part(44).x + mark.part(46).x) // 2)
         R_TB_Cy = abs((mark.part(44).y + mark.part(46).y) // 2)
 
-
+        # save pos value to container
+        L_LR_Cx_list.append(L_LR_Cx)
+        L_LR_Cy_list.append(L_LR_Cy)
+        R_LR_Cx_list.append(R_LR_Cx)
+        R_LR_Cy_list.append(R_LR_Cy)
 
         # set numpy mark
         mark = face_utils.shape_to_np(mark)
@@ -149,14 +176,25 @@ while True:
     # detect eyes with eye_cascade
     eyes = eye_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=6)
 
+    # clear container
+    del L_LR_Cx_list[:-1]
+    del L_LR_Cy_list[:-1]
+    del R_LR_Cx_list[:-1]
+    del R_LR_Cy_list[:-1]
+
+    print("Lx: ", L_LR_Cx_list)
+    print("Ly: ", L_LR_Cy_list)
+    print("Rx: ", R_LR_Cx_list)
+    print("Ry: ", R_LR_Cy_list)
+
     # draw detected eyes
     index = 0
     for eye_x, eye_y, eye_w, eye_h in eyes:
 
         # set eye triangle
-        side_a = math.sqrt((R_LR_Cx - L_LR_Cx)**2 + (R_LR_Cy - L_LR_Cy))
-        side_b = R_LR_Cx - L_LR_Cx
-        side_c = R_LR_Cy - L_LR_Cy
+        side_a = math.sqrt((R_LR_Cx_list[0] - L_LR_Cx_list[0])**2 + (R_LR_Cy_list[0] - L_LR_Cy_list[0]))
+        side_b = R_LR_Cx_list[0] - L_LR_Cx_list[0]
+        side_c = R_LR_Cy_list[0] - L_LR_Cy_list[0]
         cos_ab = (side_a**2 + side_b**2 - side_c**2)/(2*side_a*side_b)
         radian_ab = np.arccos(cos_ab)
         angle_ab = (radian_ab*180)/math.pi
@@ -168,20 +206,12 @@ while True:
             angle_ab_list.append(angle_ab)
 
         # draw nose center
-        cv2.circle(frame, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2), 5, (255, 255, 255), 5)
-
-        # re-set frame with angle
-        if (R_LR_Cy - L_LR_Cy) > 0:
-            rotate_frame = imutils.rotate(frame, angle_ab, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2))
-            gray = cv2.cvtColor(rotate_frame, cv2.COLOR_BGR2GRAY)
-        elif (R_LR_Cy - L_LR_Cy) < 0:
-            rotate_frame = imutils.rotate(frame, -angle_ab, ((L_LR_Cx + R_LR_Cx)//2, (L_LR_Cy + R_LR_Cy)//2))
-            gray = cv2.cvtColor(rotate_frame, cv2.COLOR_BGR2GRAY)
+        cv2.circle(frame, ((L_LR_Cx_list[0] + R_LR_Cx_list[0])//2, (L_LR_Cy_list[0] + R_LR_Cy_list[0])//2), 5, (255, 255, 255), 5)
 
         # draw eye triangle
-        cv2.line(frame, (L_LR_Cx, L_LR_Cy), (R_LR_Cx, R_LR_Cy), (255, 255, 0), 1)
-        cv2.line(frame, (R_LR_Cx, L_LR_Cy), (R_LR_Cx, R_LR_Cy), (0, 255, 255), 1)
-        cv2.line(frame, (L_LR_Cx, L_LR_Cy), (R_LR_Cx, L_LR_Cy), (255, 0, 255), 1)
+        cv2.line(frame, (L_LR_Cx_list[0], L_LR_Cy_list[0]), (R_LR_Cx_list[0], R_LR_Cy_list[0]), (255, 255, 0), 1)
+        cv2.line(frame, (R_LR_Cx_list[0], L_LR_Cy_list[0]), (R_LR_Cx_list[0], R_LR_Cy_list[0]), (0, 255, 255), 1)
+        cv2.line(frame, (L_LR_Cx_list[0], L_LR_Cy_list[0]), (R_LR_Cx_list[0], L_LR_Cy_list[0]), (255, 0, 255), 1)
 
         cv2.rectangle(frame, (eye_x, eye_y), (eye_x + eye_w, eye_y + eye_h), (0, 255, 255), 2)
         index = index + 1
@@ -189,7 +219,7 @@ while True:
     fps = cv2.getTickFrequency() / (cv2.getTickCount() - tick)
     cv2.putText(frame, "FPS:{} ".format(int(fps)), (10, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
-    print(angle_ab_list)
+    frame_count += 1
     print("one last")
 
     # show frames
