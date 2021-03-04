@@ -21,6 +21,7 @@
 ## Table of contents
 
 -   [Folder Structure](#folder-structure)
+-   [Raspberry Pi](#raspberry-pi)
 -   [Detector and Predictor](#detector-and-predictor)
     -   [OpenCV](#opencv)
     -   [Cascade Classifier](#cascade-classifier)
@@ -31,6 +32,8 @@
         -   [Drowsiness Detection](#drowsiness-detection)
         -   [Live Rotation](#live-rotation)
     -   [Gaze Tracking](#gaze-tracking)
+-   [Flask](#flask)
+    -   [Live Streaming](#live-streaming)
 
 ## Folder Structure
 
