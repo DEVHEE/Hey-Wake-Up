@@ -40,8 +40,11 @@ front_cascade = cv2.CascadeClassifier(cascade_dir + "haarcascade_frontalface_alt
 print("Check")
 
 # initialize camera id
-print("[INFO] Set camera device...")
+print("[INFO] Starting camera device...")
 vid = VideoStream(0).start()  # vid = VideoStream(usePiCamera=args["webcam"] > 0).start()
+print("[INFO] 2 Seconds left...")
+time.sleep(1.0)
+print("[INFO] 1 Second left...")
 time.sleep(1.0)
 print("Check")
 
@@ -220,9 +223,9 @@ while True:
     cv2.putText(frame, "FPS:{} ".format(int(fps)), (10, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
     frame_count += 1
-    print("one last")
+    print("[INFO] Frame End")
 
-    # show frames
+    # show frames local
     cv2.imshow("Hey, Wake Up!", frame)
     key = cv2.waitKey(1) & 0xFF
 
