@@ -9,6 +9,7 @@
 [![PyPI status](https://img.shields.io/pypi/status/ansicolortags.svg)]()
 [![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-370/)
 [![made-with-opencv](http://img.shields.io/badge/OpenCV-5c3ee8?style=square&logo=OpenCV&logoColor=white)]()
+[![Raspberry Pi](http://img.shields.io/badge/Raspberry%20Pi-c51a4a?style=square&logo=Raspberry-Pi&logoColor=white)]()
 
 [![made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
 [![built-with-love](http://ForTheBadge.com/images/badges/built-with-love.svg)](https://GitHub.com/DEVHEE/)
