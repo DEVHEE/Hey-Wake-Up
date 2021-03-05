@@ -17,7 +17,7 @@ from scipy.spatial import distance
 from PIL import ImageFont, ImageDraw, Image
 
 # import custom module
-from data.library.gaze_tracking import GazeTracking
+# from data.library.gaze_tracking import GazeTracking
 
 # set directory
 landmark_dir = "./data/model/landmark/"
