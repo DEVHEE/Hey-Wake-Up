@@ -65,7 +65,7 @@ def midpoint(p1, p2):
 
 
 # set GazeTracking
-gaze = GazeTracking()
+# gaze = GazeTracking()
 
 # set value container
 angle_ab_list = []
