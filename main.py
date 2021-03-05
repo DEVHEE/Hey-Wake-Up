@@ -215,7 +215,8 @@ while True:
         cv2.line(frame, (L_LR_Cx_list[0], L_LR_Cy_list[0]), (R_LR_Cx_list[0], R_LR_Cy_list[0]), (255, 255, 0), 1)
         cv2.line(frame, (R_LR_Cx_list[0], L_LR_Cy_list[0]), (R_LR_Cx_list[0], R_LR_Cy_list[0]), (0, 255, 255), 1)
         cv2.line(frame, (L_LR_Cx_list[0], L_LR_Cy_list[0]), (R_LR_Cx_list[0], L_LR_Cy_list[0]), (255, 0, 255), 1)
-
+        
+        # draw eye rectangle
         cv2.rectangle(frame, (eye_x, eye_y), (eye_x + eye_w, eye_y + eye_h), (0, 255, 255), 2)
         index = index + 1
 
